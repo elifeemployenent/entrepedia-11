@@ -33,6 +33,7 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
+  const [usernameManuallyEdited, setUsernameManuallyEdited] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   
@@ -68,17 +69,14 @@ export default function Auth() {
     return cleanName ? `${cleanName}${lastFourDigits}` : '';
   };
 
-  // Auto-generate username when name or mobile changes
+  // Auto-generate username when name or mobile changes (real-time)
   useEffect(() => {
-    if (mode === 'signup' && fullName && mobileNumber.length >= 4) {
+    if (mode === 'signup' && !usernameManuallyEdited) {
       const generatedUsername = generateUsername(fullName, mobileNumber);
-      if (!username || username === generateUsername(fullName.slice(0, -1), mobileNumber) || 
-          username === generateUsername(fullName, mobileNumber.slice(0, -1))) {
-        setUsername(generatedUsername);
-        setUsernameAvailable(null);
-      }
+      setUsername(generatedUsername);
+      setUsernameAvailable(null);
     }
-  }, [fullName, mobileNumber, mode]);
+  }, [fullName, mobileNumber, mode, usernameManuallyEdited]);
 
   const checkUsernameAvailability = async (usernameToCheck: string) => {
     if (!usernameToCheck || usernameToCheck.length < 3) {
@@ -276,6 +274,7 @@ export default function Auth() {
                           onChange={e => {
                             const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                             setUsername(value);
+                            setUsernameManuallyEdited(true);
                             setUsernameAvailable(null);
                           }}
                           maxLength={30}
