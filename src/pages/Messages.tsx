@@ -192,22 +192,21 @@ export default function Messages() {
     if (!user) return;
 
     setLoading(true);
-    try {
-      const { data, error } = await getConversations();
+    const { data, error } = await getConversations();
 
-      if (error) throw error;
-
-      setConversations(data?.conversations || []);
-    } catch (error) {
+    if (error) {
+      setLoading(false);
       if (isSessionError(error)) {
         await handleSessionExpired();
         return;
       }
       console.error('Error fetching conversations:', error);
       toast({ title: 'Error loading conversations', variant: 'destructive' });
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    setConversations(data?.conversations || []);
+    setLoading(false);
   };
 
   const loadConversation = async (convId: string) => {
