@@ -107,13 +107,10 @@ export default function AdminLogin() {
         return;
       }
 
-      // Check if user has admin role using service role via edge function
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id);
-
-      if (rolesError || !roles || roles.length === 0) {
+      // Check if user has admin role (roles come from edge function which uses service role)
+      const roles = data.roles || [];
+      
+      if (roles.length === 0) {
         toast({
           title: 'Access denied',
           description: 'You do not have admin privileges',
@@ -127,7 +124,7 @@ export default function AdminLogin() {
       localStorage.setItem('admin_session', JSON.stringify({
         user: data.user,
         session_token: data.session_token,
-        roles: roles.map(r => r.role),
+        roles: roles,
       }));
 
       toast({
