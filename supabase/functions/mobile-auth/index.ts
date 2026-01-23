@@ -211,6 +211,12 @@ serve(async (req) => {
         .eq("id", credentials.id)
         .single();
 
+      // Get admin roles (using service role, bypasses RLS)
+      const { data: userRoles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", credentials.id);
+
       // Generate session token and store in database
       const sessionToken = generateSessionToken();
       
@@ -253,10 +259,11 @@ serve(async (req) => {
             ...profile,
           },
           session_token: sessionToken,
+          roles: userRoles?.map(r => r.role) || [],
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    } 
+    }
     
     else {
       return new Response(
